@@ -84,7 +84,8 @@ auto main(int argc, char const **argv) -> int {
     try {
         auto cmd = parseCommandQuery(argc, argv);
         auto command = makeCommandPointer(cmd);
-        auto tasks = std::filesystem::current_path().append("tasks.json");
+        // auto tasks = std::filesystem::current_path().append("tasks.json");
+        auto tasks = std::filesystem::path(argv[0]).parent_path().append("tasks.json");
         auto tasks_list = TaskList(tasks.c_str());
         tasks_list.Add({
             -1,

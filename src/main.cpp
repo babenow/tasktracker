@@ -86,16 +86,17 @@ auto main(int argc, char const **argv) -> int {
         auto command = makeCommandPointer(cmd);
         // auto tasks = std::filesystem::current_path().append("tasks.json");
         auto tasks = std::filesystem::path(argv[0]).parent_path().append("tasks.json");
-        auto tasks_list = TaskList(tasks.c_str());
-        tasks_list.Add({
+        auto tasks_list = std::make_shared<TaskList>(tasks.c_str());
+        tasks_list->Add({
             -1,
-            "Add",
+            "Test task",
             TaskStatus::TODO,
             std::chrono::system_clock::now(),
             std::chrono::system_clock::now(),
         });
-        tasks_list.Save();
+        tasks_list->Save();
         try {
+            command->SetTaskList(tasks_list);
             command->Execute();
         } catch (std::runtime_error e) {
             std::cout << "Command execution error: " << e.what() << "\n";

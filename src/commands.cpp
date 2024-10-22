@@ -59,5 +59,5 @@ ListCommand::ListCommand(std::vector<std::string> args)
     : Command(std::move(args)) {}
 
 void ListCommand::Execute() {
-    std::cout << "List Command: TBD\n";
+    m_task_list->PrintAllTasks();
 }

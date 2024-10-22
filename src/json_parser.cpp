@@ -94,9 +94,9 @@ auto JSONParser::parseTask() -> Task {
             task.description = parseString();
         } else if (key == "status") {
             task.status = parseStatus();
-        } else if (key == "created_at") {
+        } else if (key == "createdAt") {
             task.created_at = parseDateTime();
-        } else if (key == "updated_at") {
+        } else if (key == "updatedAt") {
             task.updated_at = parseDateTime();
         } else {
             throw std::runtime_error("Unknown key in task: " + key);

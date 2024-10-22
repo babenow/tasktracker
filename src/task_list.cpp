@@ -1,8 +1,10 @@
 #include "task_list.hpp"
 #include "json_parser.hpp"
+#include "task.hpp"
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <ostream>
 #include <sstream>
@@ -15,7 +17,7 @@ TaskList::TaskList(std::string_view tasks_file)
         file << "[]";
         file.close();
     }
-    m_parser = std::make_shared<JSONParser>();
+    m_parser = JSONParser();
     parse();
 }
 
@@ -40,6 +42,13 @@ void TaskList::Add(Task task) noexcept {
     m_tasks.emplace_back(std::move(task));
 }
 
+void TaskList::PrintAllTasks() noexcept {
+    for (const auto &task : m_tasks) {
+        task.Print(std::cout);
+        std::cout << "\n";
+    }
+}
+
 void TaskList::parse() {
     std::ifstream file(m_tasks_file.data());
     std::string str;
@@ -50,6 +59,6 @@ void TaskList::parse() {
     }
     file.close();
 
-    m_parser->setData(json);
-    m_tasks = m_parser->parseTaskList();
+    m_parser.setData(json);
+    m_tasks = m_parser.parseTaskList();
 }

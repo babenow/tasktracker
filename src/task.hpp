@@ -2,6 +2,7 @@
 
 #include "helper.hpp"
 #include <chrono>
+#include <iomanip>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -10,7 +11,7 @@ enum class TaskStatus { TODO, IN_PROGRESS, DONE, UNKNOWN };
 static const std::unordered_map<TaskStatus, std::string> STATUS_MAP = {
     {TaskStatus::TODO, "todo"},
     {TaskStatus::IN_PROGRESS, "in_progress"},
-    {TaskStatus::DONE, "completed"},
+    {TaskStatus::DONE, "done"},
 };
 struct Task {
     int id;
@@ -25,8 +26,8 @@ struct Task {
         ss << "\"description\":" << "\"" << (description.has_value() ? description.value() : "")
            << "\",";
         ss << "\"status\":" << "\"" << Task::statusToString(status) << "\",";
-        ss << "\"created_at\":" << "\"" << TimePointToString(created_at) << "\",";
-        ss << "\"updated_at\":" << "\"" << TimePointToString(updated_at) << "\"";
+        ss << "\"createdAt\":" << "\"" << TimePointToString(created_at) << "\",";
+        ss << "\"updatedAt\":" << "\"" << TimePointToString(updated_at) << "\"";
         ss << "}";
         return ss.str();
     };
@@ -48,6 +49,30 @@ struct Task {
 
     void BeforeUpdate() { updated_at = std::chrono::system_clock::now(); }
 
-    void PrintTask() {}
+    void Print(std::ostream &str) const {
+        auto time = std::chrono::system_clock::to_time_t(created_at);
+        str << std::put_time(std::localtime(&time), "%d.%m.%Y - %H:%M");
+        str << " | [";
+        switch (status) {
+        case TaskStatus::TODO:
+            [[fallthrough]];
+        case TaskStatus::IN_PROGRESS:
+            str << " ";
+            break;
+        case TaskStatus::DONE:
+            str << "x";
+            break;
+        case TaskStatus::UNKNOWN:
+            str << "-";
+            break;
+        }
+        str << "] ";
+        str << description.value_or("-Task without description-");
+        if (created_at != updated_at) {
+            str << " Redacted: ";
+            time = std::chrono::system_clock::to_time_t(updated_at);
+            str << std::put_time(std::localtime(&time), "%d.%m.%Y - %H:%M");
+        }
+    }
 };
 ;

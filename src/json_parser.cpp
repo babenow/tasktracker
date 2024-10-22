@@ -68,7 +68,7 @@ auto JSONParser::parseStatus() -> TaskStatus {
 }
 
 auto JSONParser::parseTask() -> Task {
-    Task task;
+    Task task{};
     skipWhitespace();
     if (get() != '{') {
         throw std::runtime_error("Expected '{' at start of task");

@@ -14,7 +14,7 @@ static const std::unordered_map<TaskStatus, std::string> STATUS_MAP = {
     {TaskStatus::DONE, "done"},
 };
 struct Task {
-    int id;
+    mutable int id;
     std::optional<std::string> description;
     TaskStatus status;
     std::chrono::system_clock::time_point created_at;
@@ -48,16 +48,22 @@ struct Task {
     }
 
     void BeforeUpdate() { updated_at = std::chrono::system_clock::now(); }
+    void BeforeCreate() {
+        created_at = std::chrono::system_clock::now();
+        BeforeUpdate();
+    }
 
     void Print(std::ostream &str) const {
         auto time = std::chrono::system_clock::to_time_t(created_at);
-        str << std::put_time(std::localtime(&time), "%d.%m.%Y - %H:%M");
-        str << " | [";
+        str << "[" << id << "]\t";
+        str << std::put_time(std::localtime(&time), "%d.%m.%Y, %H:%M");
+        str << "\t[";
         switch (status) {
         case TaskStatus::TODO:
-            [[fallthrough]];
-        case TaskStatus::IN_PROGRESS:
             str << " ";
+            break;
+        case TaskStatus::IN_PROGRESS:
+            str << "P";
             break;
         case TaskStatus::DONE:
             str << "x";
@@ -66,12 +72,12 @@ struct Task {
             str << "-";
             break;
         }
-        str << "] ";
-        str << description.value_or("-Task without description-");
+        str << "]\t\t";
+        str << description.value_or("-Task without description-") << "\t";
         if (created_at != updated_at) {
-            str << " Redacted: ";
+            str << " Red: ";
             time = std::chrono::system_clock::to_time_t(updated_at);
-            str << std::put_time(std::localtime(&time), "%d.%m.%Y - %H:%M");
+            str << std::put_time(std::localtime(&time), "%d.%m.%Y, %H:%M");
         }
     }
 };

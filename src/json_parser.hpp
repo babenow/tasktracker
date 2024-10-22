@@ -14,11 +14,11 @@ public:
     explicit JSONParser(std::string_view input);
     JSONParser() = default;
 
-    inline void setData(std::string_view data) { m_input = data; }
+    void setData(std::string_view data) { m_input = data; }
 
-    inline auto peek() const -> char { return m_pos < m_input.size() ? m_input[m_pos] : '\0'; };
-    inline auto get() { return m_pos < m_input.size() ? m_input[m_pos++] : '\0'; }
-    inline void skipWhitespace() {
+    auto peek() const -> char { return m_pos < m_input.size() ? m_input[m_pos] : '\0'; };
+    auto get() { return m_pos < m_input.size() ? m_input[m_pos++] : '\0'; }
+    void skipWhitespace() {
         while (std::isspace(peek())) {
             get();
         }

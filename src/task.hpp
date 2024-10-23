@@ -66,10 +66,20 @@ struct Task {
         BeforeUpdate();
     }
 
-    void Print(std::ostream &str) const {
+    void PrintCreatedTime(std::ostream &str, const std::string& format = "%d.%m.%Y, %H:%M") const {
         auto time = std::chrono::system_clock::to_time_t(created_at);
+        PrintTime(str, time, format);
+    }
+
+    void PrintUpdatedTime(std::ostream &str, const std::string& format = "%d.%m.%Y, %H:%M") const {
+        auto time = std::chrono::system_clock::to_time_t(updated_at);
+        PrintTime(str, time, format);
+    }
+
+    void Print(std::ostream &str) const {
+
         str << "[" << id << "]\t";
-        str << std::put_time(std::localtime(&time), "%d.%m.%Y, %H:%M");
+        PrintCreatedTime(str);
         str << "\t[";
         switch (status) {
         case TaskStatus::TODO:
@@ -89,9 +99,14 @@ struct Task {
         str << description.value_or("-Task without description-") << "\t";
         if (created_at != updated_at) {
             str << " [Red: ";
-            time = std::chrono::system_clock::to_time_t(updated_at);
-            str << std::put_time(std::localtime(&time), "%d.%m.%Y, %H:%M") << "]";
+            PrintUpdatedTime(str);
+            str << "]";
         }
+    }
+
+private:
+    static void PrintTime(std::ostream& str, time_t time, const std::string& format = "%d.%m.%Y, %H:%M") {
+        str << std::put_time(std::localtime(&time), format.c_str());
     }
 };
 ;

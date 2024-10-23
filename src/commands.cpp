@@ -30,10 +30,26 @@ auto Command::GetTaskID() const -> int {
     return id;
 }
 
+void Command::SetTaskList(const std::shared_ptr<TaskList> &task_list) {
+    m_task_list = task_list;
+}
+
 AddCommand::AddCommand(std::vector<std::string> args)
     : Command(std::move(args)) {}
 
-void AddCommand::Execute() {}
+void AddCommand::Execute() {
+    Task t{};
+    if (m_arguments.size() > 1) {
+        t.description = m_arguments[1];
+    }
+    auto task_ptr = std::make_shared<Task>(std::move(t));
+    m_task_list->Add(task_ptr);
+    m_task_list->Save();
+    system("clear");
+    std::cout << "Task added. ID: " << task_ptr->id << ". Creation time: ";
+    task_ptr->PrintCreatedTime(std::cout);
+    std::cout << "\n To see all tasks use command \"list\"\n";
+}
 
 UpdateCommand::UpdateCommand(std::vector<std::string> args)
     : Command(std::move(args)) {}
@@ -52,10 +68,17 @@ void UpdateCommand::Execute() {
 }
 
 DeleteCommand::DeleteCommand(std::vector<std::string> args)
-    : Command(std::move(args)) {}
+    : Command(std::move(args)) {
+}
 
 void DeleteCommand::Execute() {
-    std::cout << "Delete command TBD\n";
+    if (m_arguments.size() > 1) {
+        const auto ID = GetTaskID();
+        m_task_list->Delete(ID);
+        m_task_list->Save();
+    } else {
+        std::cout << "Unknown task id (or empty)";
+    }
 }
 MarkIsCommand::MarkIsCommand(std::vector<std::string> args)
     : Command(std::move(args)) {}

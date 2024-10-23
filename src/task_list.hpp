@@ -14,7 +14,7 @@ class TaskList {
 public:
     explicit TaskList(std::string_view tasks_file);
     void Save();
-    void Add(std::shared_ptr<Task> task) noexcept;
+    void Add(const std::shared_ptr<Task> &task) noexcept;
     void Update(const Task &task) noexcept;
     void Delete(int id) noexcept;
 

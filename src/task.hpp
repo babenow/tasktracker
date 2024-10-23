@@ -3,6 +3,7 @@
 #include "helper.hpp"
 #include <chrono>
 #include <iomanip>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -36,8 +37,7 @@ struct Task {
         std::stringstream ss("");
         ss << "{";
         ss << "\"id\":" << id << ",";
-        ss << "\"description\":" << "\"" << (description.has_value() ? description.value() : "")
-           << "\",";
+        ss << "\"description\":" << "\"" << description.value_or("") << "\",";
         ss << "\"status\":" << "\"" << to_string(status) << "\",";
         ss << "\"createdAt\":" << "\"" << TimePointToString(created_at) << "\",";
         ss << "\"updatedAt\":" << "\"" << TimePointToString(updated_at) << "\"";
@@ -66,18 +66,17 @@ struct Task {
         BeforeUpdate();
     }
 
-    void PrintCreatedTime(std::ostream &str, const std::string& format = "%d.%m.%Y, %H:%M") const {
+    void PrintCreatedTime(std::ostream &str, const std::string &format = "%d.%m.%Y, %H:%M") const {
         auto time = std::chrono::system_clock::to_time_t(created_at);
         PrintTime(str, time, format);
     }
 
-    void PrintUpdatedTime(std::ostream &str, const std::string& format = "%d.%m.%Y, %H:%M") const {
+    void PrintUpdatedTime(std::ostream &str, const std::string &format = "%d.%m.%Y, %H:%M") const {
         auto time = std::chrono::system_clock::to_time_t(updated_at);
         PrintTime(str, time, format);
     }
 
     void Print(std::ostream &str) const {
-
         str << "[" << id << "]\t";
         PrintCreatedTime(str);
         str << "\t[";
@@ -96,7 +95,8 @@ struct Task {
             break;
         }
         str << "]\t\t";
-        str << description.value_or("-Task without description-") << "\t";
+        auto desc = description.value_or("Task without description");
+        str << desc;
         if (created_at != updated_at) {
             str << " [Red: ";
             PrintUpdatedTime(str);
@@ -105,7 +105,9 @@ struct Task {
     }
 
 private:
-    static void PrintTime(std::ostream& str, time_t time, const std::string& format = "%d.%m.%Y, %H:%M") {
+    static void PrintTime(std::ostream &str,
+                          time_t time,
+                          const std::string &format = "%d.%m.%Y, %H:%M") {
         str << std::put_time(std::localtime(&time), format.c_str());
     }
 };

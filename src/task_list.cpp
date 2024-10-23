@@ -13,7 +13,7 @@ auto TaskList::nextId() -> int {
     for (const auto &t : m_tasks) {
         next = std::max(t.id, next);
     }
-    return next;
+    return next + 1;
 }
 
 TaskList::TaskList(std::string_view tasks_file)
@@ -43,14 +43,14 @@ void TaskList::Save() {
     file.close();
 }
 
-void TaskList::Add(std::shared_ptr<Task> task) noexcept {
+auto TaskList::Add(const std::shared_ptr<Task> &task) noexcept -> void {
     task->id = nextId();
     task->BeforeCreate();
     m_tasks.emplace_back(std::move(*task));
 }
 auto TaskList::CountBy(const TaskStatus &status) const -> size_t {
-    auto res = GetTasksByStatus(status);
-    return res.size();
+    const auto RES = GetTasksByStatus(status);
+    return RES.size();
 }
 
 auto TaskList::GetTasksById(int id) const -> std::optional<Task> {

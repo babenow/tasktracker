@@ -1,10 +1,20 @@
 # tasktracker
 Task tracker CLI
 
+Sample solution for the [task-tracker](https://roadmap.sh/projects/task-tracker) challenge for [roadmap.sh](https://roadmap.sh)
+- Linux
+```shell
+git clone git@github.com:babenow/tasktracker.git
+cd tasktracker && cmake --preset="dev-linux" && cmake --build build
+```
+- Windows
+```shell
+git clone git@github.com:babenow/tasktracker.git
+cd tasktracker && cmake --preset="dev-win" && cmake --build build
+```
 ## Комманды
 ```shell
-./bin/task-cli list
-./bin/task-cli add "task 1" && ./bin/task-cli list
+./bin/task-cli add "Test task" && ./bin/task-cli list
 ./bin/task-cli update 1 "Updated task 1" && ./bin/task-cli list
 ./bin/task-cli mark-progress 1 && ./bin/task-cli list
 ./bin/task-cli mark-in-progress 1 && ./bin/task-cli list
@@ -14,20 +24,6 @@ Task tracker CLI
 ./bin/task-cli delete 1 && ./bin/task-cli list
 ```
 
-
-## Сборка и запуск
-- Linux (MacOS)
-```shell
-cmake --preset="dev-linux"
-cmake --build build
-./bin/task-cli list
-```
-- Windows
-```shell
-cmake --preset="dev-win"
-cmake --build build
-./bin/task-cli.exe list
-```
 
 ## Добавление задачи
 ```c++

@@ -13,52 +13,67 @@ protected:
 
 public:
     virtual ~Command() = default;
-    enum SupportCommands : std::uint8_t { ADD, UPDATE, DELETE, MARK_AS_DONE, MARK_AS_TODO, LIST };
+    enum SupportCommands : std::uint8_t { ADD, UPDATE, DELETE, MARK_IN_PROGRESS, MARK_AS_DONE, MARK_AS_TODO, LIST };
     explicit Command(std::vector<std::string> args);
     virtual void Execute() = 0;
     auto GetTaskID() const -> int;
     void SetTaskList(std::shared_ptr<TaskList> task_list) { m_task_list = task_list; }
 };
 
-class AddCommand : public Command {
+class AddCommand final : public Command {
 public:
     explicit AddCommand(std::vector<std::string> args);
     ~AddCommand() override = default;
     void Execute() override;
 };
 
-class UpdateCommand : public Command {
+class UpdateCommand final : public Command {
 public:
     explicit UpdateCommand(std::vector<std::string> args);
     ~UpdateCommand() override = default;
     void Execute() override;
 };
 
-class DeleteCommand : public Command {
+class DeleteCommand final : public Command {
 public:
     explicit DeleteCommand(std::vector<std::string> args);
     ~DeleteCommand() override = default;
     void Execute() override;
 };
 
-class MarkAsDoneCommand : public Command {
+class MarkIsCommand : public Command {
 public:
-    explicit MarkAsDoneCommand(std::vector<std::string> args);
-    ~MarkAsDoneCommand() override = default;
+    explicit MarkIsCommand(std::vector<std::string> args);
+    ~MarkIsCommand() override = default;
+    void Execute() override = 0;
+    void MarkIs(const TaskStatus& status) const;
+};
+
+class MarkIsDoneCommand final : public MarkIsCommand {
+public:
+    explicit MarkIsDoneCommand(std::vector<std::string> args);
+    ~MarkIsDoneCommand() override = default;
     void Execute() override;
 };
 
-class MarkAsTodoCommand : public Command {
+class MarkTodoCommand final : public MarkIsCommand {
 public:
-    explicit MarkAsTodoCommand(std::vector<std::string> args);
-    ~MarkAsTodoCommand() override = default;
+    explicit MarkTodoCommand(std::vector<std::string> args);
+    ~MarkTodoCommand() override = default;
     void Execute() override;
 };
 
-class ListCommand : public Command {
+class MarkInProgressCommand final : public MarkIsCommand {
+public:
+    explicit MarkInProgressCommand(std::vector<std::string> args);
+    ~MarkInProgressCommand() override = default;
+    void Execute() override;
+};
+
+class ListCommand final : public Command {
 public:
     explicit ListCommand(std::vector<std::string> args);
     ~ListCommand() override = default;
-    void PrintTasks(std::vector<Task> tasks) const noexcept;
+    static void PrintTasks(const std::vector<Task> &tasks) noexcept;
     void Execute() override;
 };

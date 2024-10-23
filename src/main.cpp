@@ -1,7 +1,5 @@
 #include "commands.hpp"
-#include "task.hpp"
 #include "task_list.hpp"
-#include <chrono>
 #include <clocale>
 #include <filesystem>
 #include <format>
@@ -21,8 +19,12 @@ const CommandsMap COMMAND_LIST = {
     {"add", Command::ADD},
     {"update", Command::UPDATE},
     {"delete", Command::DELETE},
-    {"mark-in-progress", Command::MARK_AS_TODO},
+    {"mark-in-progress", Command::MARK_IN_PROGRESS},
+    {"mark-progress", Command::MARK_IN_PROGRESS},
     {"mark-is-done", Command::MARK_AS_DONE},
+    {"mark-done", Command::MARK_AS_DONE},
+    {"mark-todo", Command::MARK_AS_TODO},
+    {"mark-as-todo", Command::MARK_AS_TODO},
     {"list", Command::LIST},
 };
 
@@ -36,8 +38,8 @@ auto parseCommandQuery(int argc, const char **argv) -> Cmd {
             }
             ss << i->first;
         }
-        auto msg = "Command is empty. The program support commands: " + ss.str();
-        throw std::runtime_error(msg);
+        const auto MSG = "Command is empty. The program support commands: " + ss.str();
+        throw std::runtime_error(MSG);
     }
 
     auto got = COMMAND_LIST.find(argv[1]);
@@ -66,37 +68,32 @@ auto makeCommandPointer(Cmd cmd) -> std::shared_ptr<Command> {
     case Command::DELETE:
         command = std::make_shared<DeleteCommand>(cmd.second);
     case Command::MARK_AS_DONE:
-        command = std::make_shared<MarkAsDoneCommand>(cmd.second);
+        command = std::make_shared<MarkIsDoneCommand>(cmd.second);
         break;
     case Command::MARK_AS_TODO:
-        command = std::make_shared<MarkAsTodoCommand>(cmd.second);
+        command = std::make_shared<MarkTodoCommand>(cmd.second);
         break;
     case Command::LIST:
         command = std::make_shared<ListCommand>(cmd.second);
+        break;
+    case Command::MARK_IN_PROGRESS:
+        command = std::make_shared<MarkInProgressCommand>(cmd.second);
         break;
     }
     return command;
 }
 
-auto main(int argc, char const **argv) -> int {
+auto main(const int argc, char const **argv) -> int {
     setlocale(LC_ALL, "");
 
     try {
         auto cmd = parseCommandQuery(argc, argv);
         auto command = makeCommandPointer(cmd);
-        // auto tasks = std::filesystem::current_path().append("tasks.json");
-        auto tasks = std::filesystem::path(argv[0]).parent_path().append("tasks.json");
-        auto tasks_list = std::make_shared<TaskList>(tasks.c_str());
-        // tasks_list->Add({
-        //     -1,
-        //     "Test task",
-        //     TaskStatus::TODO,
-        //     std::chrono::system_clock::now(),
-        //     std::chrono::system_clock::now(),
-        // });
-        // tasks_list->Save();
+        auto tasks_path = std::filesystem::path(argv[0]).parent_path().append("tasks.json");
+        auto tasks_list = std::make_shared<TaskList>(tasks_path.c_str());
         try {
             command->SetTaskList(tasks_list);
+            system("clear");
             command->Execute();
         } catch (std::runtime_error e) {
             std::cout << "Command execution error: " << e.what() << "\n";

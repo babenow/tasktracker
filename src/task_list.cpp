@@ -37,6 +37,7 @@ void TaskList::Save() {
 
 void TaskList::Add(Task task) noexcept {
     task.id = static_cast<int>(m_tasks.size()) + 1;
+    task.BeforeCreate();
     m_tasks.emplace_back(std::move(task));
 }
 auto TaskList::CountBy(const TaskStatus &status) -> size_t {
@@ -44,9 +45,14 @@ auto TaskList::CountBy(const TaskStatus &status) -> size_t {
     return res.size();
 }
 
-auto TaskList::GetTasksById(int id) -> std::vector<Task> {
+auto TaskList::GetTasksById(int id) -> std::optional<Task> {
     auto filter = [id](const Task& t) {return t.id == id;};
-    return GetTasksBy(filter);
+    auto task = std::ranges::find_if(m_tasks.begin(), m_tasks.end(), filter);
+
+    if (task == m_tasks.end()) {
+        return std::nullopt;
+    }
+    return *task;
 }
 auto TaskList::GetTasksByStatus(const TaskStatus &status) -> std::vector<Task> {
     std::vector<Task> result;

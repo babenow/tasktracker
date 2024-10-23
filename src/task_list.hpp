@@ -18,7 +18,7 @@ public:
     auto empty() const -> bool { return m_tasks.empty(); }
     auto CountBy(const TaskStatus& status) -> size_t;
     [[nodiscard]] auto GetAll() const -> std::vector<Task> { return m_tasks; };
-    [[nodiscard]] auto GetTasksById(int id) -> std::vector<Task>;
+    [[nodiscard]] auto GetTasksById(int id) -> std::optional<Task>;
     [[nodiscard]] auto GetTasksByStatus(const TaskStatus &status) -> std::vector<Task>;
     [[nodiscard]] auto GetTasksBy(const std::function<bool(const Task &)> &filter_func)
         -> std::vector<Task>;

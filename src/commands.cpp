@@ -7,11 +7,20 @@
 #include <utility>
 #include <vector>
 
+static const std::unordered_map<std::string, TaskStatus> SUPPORTED_LIST_FILTERS{
+    {"todo", TaskStatus::TODO},
+    {"tbd", TaskStatus::TODO},
+    {"done", TaskStatus::DONE},
+    {"is-done", TaskStatus::DONE},
+    {"in-progress", TaskStatus::IN_PROGRESS},
+    {"progress", TaskStatus::IN_PROGRESS},
+};
+
 Command::Command(std::vector<std::string> args)
     : m_arguments(std::move(args)) {};
 
 auto Command::GetTaskID() const -> int {
-    if (m_arguments.empty()) {
+    if (m_arguments.size() < 2) {
         throw std::runtime_error("update command need ID task and description");
     }
     auto id = std::atoi(m_arguments[1].c_str());
@@ -30,8 +39,16 @@ UpdateCommand::UpdateCommand(std::vector<std::string> args)
     : Command(std::move(args)) {}
 
 void UpdateCommand::Execute() {
-    std::cout << "Updated Task: \nID: " << GetTaskID() << "\n";
-    std::cout << "Update Command EXECUTE: TBD";
+    if (m_arguments.size() > 2) {
+        auto id = GetTaskID();
+        auto task = m_task_list->GetTasksById(id);
+        if (task.has_value()) {
+            auto t = task.value();
+            t.description = m_arguments[2];
+            m_task_list->Update(t);
+        }
+        m_task_list->Save();
+    }
 }
 
 DeleteCommand::DeleteCommand(std::vector<std::string> args)
@@ -40,25 +57,46 @@ DeleteCommand::DeleteCommand(std::vector<std::string> args)
 void DeleteCommand::Execute() {
     std::cout << "Delete command TBD\n";
 }
-
-MarkAsDoneCommand::MarkAsDoneCommand(std::vector<std::string> args)
+MarkIsCommand::MarkIsCommand(std::vector<std::string> args)
     : Command(std::move(args)) {}
 
-void MarkAsDoneCommand::Execute() {
-    std::cout << "Mark as done: TBD\n";
+void MarkIsCommand::MarkIs(const TaskStatus &status) const {
+    if (m_arguments.size() > 1) {
+        auto id = GetTaskID();
+        auto task = m_task_list->GetTasksById(id);
+        if (task.has_value()) {
+            auto t = task.value();
+            t.status = status;
+            m_task_list->Update(t);
+        }
+        m_task_list->Save();
+    }
 }
 
-MarkAsTodoCommand::MarkAsTodoCommand(std::vector<std::string> args)
-    : Command(std::move(args)) {}
+MarkIsDoneCommand::MarkIsDoneCommand(std::vector<std::string> args)
+    : MarkIsCommand(std::move(args)) {}
 
-void MarkAsTodoCommand::Execute() {
-    std::cout << "Mark as TODO: TBD\n";
+void MarkIsDoneCommand::Execute() {
+    MarkIs(TaskStatus::DONE);
+}
+
+MarkTodoCommand::MarkTodoCommand(std::vector<std::string> args)
+    : MarkIsCommand(std::move(args)) {}
+
+void MarkTodoCommand::Execute() {
+    MarkIs(TaskStatus::TODO);
+}
+MarkInProgressCommand::MarkInProgressCommand(std::vector<std::string> args)
+    : MarkIsCommand(std::move(args)) {}
+
+void MarkInProgressCommand::Execute() {
+    MarkIs(TaskStatus::IN_PROGRESS);
 }
 
 ListCommand::ListCommand(std::vector<std::string> args)
     : Command(std::move(args)) {}
 
-void ListCommand::PrintTasks(std::vector<Task> tasks) const noexcept {
+void ListCommand::PrintTasks(const std::vector<Task> &tasks) noexcept {
     for (const auto &t : tasks) {
         t.Print(std::cout);
         std::cout << '\n';
@@ -68,12 +106,9 @@ void ListCommand::PrintTasks(std::vector<Task> tasks) const noexcept {
 void ListCommand::Execute() {
     std::vector<Task> tasks;
     if (m_arguments.size() > 1) {
-        if (m_arguments[1] == "done") {
-            tasks = m_task_list->GetTasksByStatus(TaskStatus::DONE);
-        } else if (m_arguments[1] == "todo") {
-            tasks = m_task_list->GetTasksByStatus(TaskStatus::TODO);
-        } else if (m_arguments[1] == "in-progress") {
-            tasks = m_task_list->GetTasksByStatus(TaskStatus::IN_PROGRESS);
+        auto status = SUPPORTED_LIST_FILTERS.find(m_arguments[1]);
+        if (status != SUPPORTED_LIST_FILTERS.end()) {
+            tasks = m_task_list->GetTasksByStatus(status->second);
         }
     } else {
         tasks = m_task_list->GetAll();

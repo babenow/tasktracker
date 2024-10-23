@@ -7,14 +7,27 @@
 #include <string>
 #include <unordered_map>
 
-enum class TaskStatus { TODO, IN_PROGRESS, DONE, UNKNOWN };
+enum class TaskStatus : int8_t { TODO, IN_PROGRESS, DONE, UNKNOWN };
+inline auto to_string(const TaskStatus E) -> const char * {
+    switch (E) {
+    case TaskStatus::TODO:
+        return "todo";
+    case TaskStatus::IN_PROGRESS:
+        return "in_progress";
+    case TaskStatus::DONE:
+        return "done";
+    default:
+        return "unknown";
+    }
+}
+
 static const std::unordered_map<TaskStatus, std::string> STATUS_MAP = {
     {TaskStatus::TODO, "todo"},
     {TaskStatus::IN_PROGRESS, "in_progress"},
     {TaskStatus::DONE, "done"},
 };
 struct Task {
-    mutable int id;
+    int id;
     std::optional<std::string> description;
     TaskStatus status;
     std::chrono::system_clock::time_point created_at;
@@ -25,7 +38,7 @@ struct Task {
         ss << "\"id\":" << id << ",";
         ss << "\"description\":" << "\"" << (description.has_value() ? description.value() : "")
            << "\",";
-        ss << "\"status\":" << "\"" << Task::statusToString(status) << "\",";
+        ss << "\"status\":" << "\"" << to_string(status) << "\",";
         ss << "\"createdAt\":" << "\"" << TimePointToString(created_at) << "\",";
         ss << "\"updatedAt\":" << "\"" << TimePointToString(updated_at) << "\"";
         ss << "}";
@@ -75,9 +88,9 @@ struct Task {
         str << "]\t\t";
         str << description.value_or("-Task without description-") << "\t";
         if (created_at != updated_at) {
-            str << " Red: ";
+            str << " [Red: ";
             time = std::chrono::system_clock::to_time_t(updated_at);
-            str << std::put_time(std::localtime(&time), "%d.%m.%Y, %H:%M");
+            str << std::put_time(std::localtime(&time), "%d.%m.%Y, %H:%M") << "]";
         }
     }
 };

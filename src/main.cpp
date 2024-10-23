@@ -16,9 +16,9 @@ using CommandsMap = std::unordered_map<std::string, Command::SupportCommands>;
 using Cmd = std::pair<Command::SupportCommands, std::vector<std::string>>;
 
 const CommandsMap COMMAND_LIST = {
-    {"add", Command::ADD},
-    {"update", Command::UPDATE},
-    {"delete", Command::DELETE},
+    {"add", Command::ADD_TASK},
+    {"update", Command::UPDATE_TASK},
+    {"delete", Command::DELETE_TASK},
     {"mark-in-progress", Command::MARK_IN_PROGRESS},
     {"mark-progress", Command::MARK_IN_PROGRESS},
     {"mark-is-done", Command::MARK_AS_DONE},
@@ -32,7 +32,7 @@ auto parseCommandQuery(int argc, const char **argv) -> Cmd {
     Cmd command;
     if (argc == 1) {
         std::stringstream ss;
-        for (auto i = COMMAND_LIST.begin(); i != COMMAND_LIST.end(); i++) {
+        for (auto i = COMMAND_LIST.begin(); i != COMMAND_LIST.end(); ++i) {
             if (i != COMMAND_LIST.begin()) {
                 ss << ", ";
             }
@@ -59,14 +59,15 @@ auto parseCommandQuery(int argc, const char **argv) -> Cmd {
 auto makeCommandPointer(Cmd cmd) -> std::shared_ptr<Command> {
     std::shared_ptr<Command> command;
     switch (cmd.first) {
-    case Command::ADD:
+    case Command::ADD_TASK:
         command = std::make_shared<AddCommand>(cmd.second);
         break;
-    case Command::UPDATE:
+    case Command::UPDATE_TASK:
         command = std::make_shared<UpdateCommand>(cmd.second);
         break;
-    case Command::DELETE:
+    case Command::DELETE_TASK:
         command = std::make_shared<DeleteCommand>(cmd.second);
+        break;
     case Command::MARK_AS_DONE:
         command = std::make_shared<MarkIsDoneCommand>(cmd.second);
         break;
@@ -87,14 +88,14 @@ auto main(const int argc, char const **argv) -> int {
     setlocale(LC_ALL, "");
 
     try {
-        auto cmd = parseCommandQuery(argc, argv);
-        auto command = makeCommandPointer(cmd);
-        auto tasks_path = std::filesystem::path(argv[0]).parent_path().append("tasks.json");
-        auto tasks_list = std::make_shared<TaskList>(tasks_path.c_str());
+        const auto CMD = parseCommandQuery(argc, argv);
+        const auto COMMAND = makeCommandPointer(CMD);
+        const auto TASKS_PATH = std::filesystem::path(argv[0]).parent_path().append("tasks.json");
+        const auto TASKS_LIST = std::make_shared<TaskList>(TASKS_PATH.c_str());
         try {
-            command->SetTaskList(tasks_list);
+            COMMAND->SetTaskList(TASKS_LIST);
             system("clear");
-            command->Execute();
+            COMMAND->Execute();
         } catch (std::runtime_error e) {
             std::cout << "Command execution error: " << e.what() << "\n";
             return 1;

@@ -8,6 +8,14 @@
 #include <sstream>
 #include <string_view>
 
+auto TaskList::nextId() -> int {
+    int next = 0;
+    for (const auto &t : m_tasks) {
+        next = std::max(t.id, next);
+    }
+    return next + 1;
+}
+
 TaskList::TaskList(std::string_view tasks_file)
     : m_tasks_file(tasks_file) {
     if (!std::filesystem::exists(m_tasks_file)) {
@@ -35,18 +43,18 @@ void TaskList::Save() {
     file.close();
 }
 
-void TaskList::Add(Task task) noexcept {
-    task.id = static_cast<int>(m_tasks.size()) + 1;
-    task.BeforeCreate();
-    m_tasks.emplace_back(std::move(task));
+auto TaskList::Add(const std::shared_ptr<Task> &task) noexcept -> void {
+    task->id = nextId();
+    task->BeforeCreate();
+    m_tasks.emplace_back(std::move(*task));
 }
-auto TaskList::CountBy(const TaskStatus &status) -> size_t {
-    auto res = GetTasksByStatus(status);
-    return res.size();
+auto TaskList::CountBy(const TaskStatus &status) const -> size_t {
+    const auto RES = GetTasksByStatus(status);
+    return RES.size();
 }
 
-auto TaskList::GetTasksById(int id) -> std::optional<Task> {
-    auto filter = [id](const Task& t) {return t.id == id;};
+auto TaskList::GetTasksById(int id) const -> std::optional<Task> {
+    auto filter = [id](const Task &t) { return t.id == id; };
     auto task = std::ranges::find_if(m_tasks.begin(), m_tasks.end(), filter);
 
     if (task == m_tasks.end()) {
@@ -54,32 +62,38 @@ auto TaskList::GetTasksById(int id) -> std::optional<Task> {
     }
     return *task;
 }
-auto TaskList::GetTasksByStatus(const TaskStatus &status) -> std::vector<Task> {
+
+auto TaskList::GetTasksByStatus(const TaskStatus &status) const -> std::vector<Task> {
     std::vector<Task> result;
     auto filter = [status](const Task &t) { return t.status == status; };
     std::ranges::copy_if(m_tasks.begin(), m_tasks.end(), std::back_inserter(result), filter);
     return result;
 }
-auto TaskList::GetTasksBy(const std::function<bool(const Task &)> &filter_func)
+auto TaskList::GetTasksBy(const std::function<bool(const Task &)> &filter_func) const
     -> std::vector<Task> {
     std::vector<Task> result;
     std::ranges::copy_if(m_tasks.begin(), m_tasks.end(), std::back_inserter(result), filter_func);
     return result;
 }
-void TaskList::Update(const Task &task) {
-    auto t = std::ranges::find_if(m_tasks.begin(), m_tasks.end(), [task](const auto &t) {
+void TaskList::Update(const Task &task) noexcept {
+    const auto T = std::ranges::find_if(m_tasks.begin(), m_tasks.end(), [task](const auto &t) {
         return task.id == t.id;
     });
-    if (t != m_tasks.end()) {
+    if (T != m_tasks.end()) {
         // Меняем статус и Описание
-        t->description = task.description;
-        t->status = task.status;
-        t->BeforeUpdate();
+        T->description = task.description;
+        T->status = task.status;
+        T->BeforeUpdate();
     } else {
         auto tt = task;
         tt.id = -1;
         tt.BeforeCreate();
     }
+}
+
+void TaskList::Delete(int id) noexcept {
+    auto ok_func = [&](const Task &t) { return id == t.id; };
+    m_tasks.erase(std::ranges::remove_if(m_tasks, ok_func).begin(), m_tasks.end());
 }
 
 void TaskList::parse() {

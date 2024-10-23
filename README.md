@@ -1,6 +1,19 @@
 # tasktracker
 Task tracker CLI
 
+## Комманды
+```shell
+./bin/task-cli list
+./bin/task-cli add "task 1" && ./bin/task-cli list
+./bin/task-cli update 1 "Updated task 1" && ./bin/task-cli list
+./bin/task-cli mark-progress 1 && ./bin/task-cli list
+./bin/task-cli mark-in-progress 1 && ./bin/task-cli list
+./bin/task-cli mark-done 1 && ./bin/task-cli list
+./bin/task-cli mark-is-done 1 && ./bin/task-cli list
+./bin/task-cli mark-todo 1 && ./bin/task-cli list
+./bin/task-cli delete 1 && ./bin/task-cli list
+```
+
 
 ## Сборка и запуск
 - Linux (MacOS)

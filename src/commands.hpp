@@ -13,11 +13,19 @@ protected:
 
 public:
     virtual ~Command() = default;
-    enum SupportCommands : std::uint8_t { ADD, UPDATE, DELETE, MARK_IN_PROGRESS, MARK_AS_DONE, MARK_AS_TODO, LIST };
+    enum SupportCommands : std::uint8_t { ADD_TASK, UPDATE_TASK, DELETE_TASK, MARK_IN_PROGRESS, MARK_AS_DONE, MARK_AS_TODO, LIST };
     explicit Command(std::vector<std::string> args);
     virtual void Execute() = 0;
     auto GetTaskID() const -> int;
-    void SetTaskList(std::shared_ptr<TaskList> task_list) { m_task_list = task_list; }
+    void SetTaskList(const std::shared_ptr<TaskList> &task_list);
+};
+
+class MarkIsCommand : public Command {
+public:
+    explicit MarkIsCommand(std::vector<std::string> args);
+    ~MarkIsCommand() override = default;
+    void Execute() override = 0;
+    void MarkIs(const TaskStatus& status) const;
 };
 
 class AddCommand final : public Command {
@@ -41,13 +49,7 @@ public:
     void Execute() override;
 };
 
-class MarkIsCommand : public Command {
-public:
-    explicit MarkIsCommand(std::vector<std::string> args);
-    ~MarkIsCommand() override = default;
-    void Execute() override = 0;
-    void MarkIs(const TaskStatus& status) const;
-};
+
 
 class MarkIsDoneCommand final : public MarkIsCommand {
 public:
